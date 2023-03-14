@@ -1,4 +1,4 @@
-const express = require('Express')
+const express = require('express')
 const router = express.Router();
 const controller = require('../Controller/goalsController');
 const cors = require('cors');
