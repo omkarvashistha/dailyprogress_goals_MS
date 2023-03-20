@@ -1,5 +1,4 @@
 //const goals = require('../model/Schema');
-const goals = require('../model/Schema');
 const goalsRepo = require('../model/Schema');
 const helper = require('../Utilities/helper');
 
@@ -30,22 +29,24 @@ exports.getUserGoalsData = async(req,res) => {
 exports.getUserGoals = async(req,res)=> {
     try {
 
-        var goalsDataRes = await goalsRepo.find({username : req.params.username});
-        var goalsData = [];
-        goalsDataRes.forEach(element => {
-            goalsData = element.goalsData.map((ele)=>{
-                if(ele.complete === false) {
-                    return ele;
-                } else {
-                    return null;
-                }
-            })
-        });
-        goalsData = goalsData.filter(data => data!==null);
-        //console.log(goalsData)
-        if(goalsData.length > 0) {
+        const query = [
+            // Get just the docs that contain have complete = false
+            {$match: {username : req.params.username}},
+            {$project: {
+                goalsData: {$filter: {
+                    input: '$goalsData',
+                    as: 'item',
+                    cond: {$eq: ['$$item.complete', false]}
+                }},
+                _id: 0
+            }}
+        ]
+        console.log(query);
+        const goalsDataRes = await goalsRepo.aggregate(query);
+
+        if(goalsDataRes.length > 0) {
             res.status(200).json({
-                data : goalsData
+                data : goalsDataRes
             })
         } else {
             res.status(200).json({
@@ -63,22 +64,25 @@ exports.getUserGoals = async(req,res)=> {
 exports.getUserCompletedGoals = async(req,res)=> {
     try {
 
-        var goalsDataRes = await goalsRepo.find({username : req.params.username});
-        var goalsData = [];
-        goalsDataRes.forEach(element => {
-            goalsData = element.goalsData.map((ele)=>{
-                if(ele.complete === true) {
-                    return ele;
-                } else {
-                    return null;
-                }
-            })
-        });
-        goalsData = goalsData.filter(data => data!==null);
-        //console.log(goalsData)
-        if(goalsData.length > 0) {
+        const query = [
+                // Get just the docs that contain have complete = true
+                {$match: {username : req.params.username}},
+                {$project: {
+                    goalsData: {$filter: {
+                        input: '$goalsData',
+                        as: 'item',
+                        cond: {$eq: ['$$item.complete', true]}
+                    }},
+                    _id: 0
+                }}
+            ]
+        console.log(query);
+        const goalsDataRes = await goalsRepo.aggregate(query);
+        console.log(goalsDataRes);
+
+        if(goalsDataRes.length > 0) {
             res.status(200).json({
-                data : goalsData
+                data : goalsDataRes
             })
         } else {
             res.status(200).json({
