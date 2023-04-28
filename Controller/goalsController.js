@@ -5,12 +5,38 @@ const helper = require('../Utilities/helper');
 exports.getUserGoalsData = async(req,res) => {
     try {
         const username = req.params.username;
-        const goalsData = await goalsRepo.find({username : username});
 
-        if(goalsData) {
+        const incompleteQuery =  [
+            {$match : {username : req.params.username}},
+            {$project : {
+                goalsData : {$filter : {
+                    input : '$goalsData',
+                    as : 'item',
+                    cond : {$eq : ['$$item.complete',false]}
+                }}
+            }}
+        ]
+
+        const completeQuery =  [
+            {$match : {username : req.params.username}},
+            {$project : {
+                goalsData : {$filter : {
+                    input : '$goalsData',
+                    as : 'item',
+                    cond : {$eq : ['$$item.complete',true]}
+                }}
+            }}
+        ]
+
+        const completeData = await goalsRepo.aggregate(completeQuery);
+        const incompleteData = await goalsRepo.aggregate(incompleteQuery);
+
+        console.log(incompleteData);
+
+        if(completeData || incompleteData) {
             res.status(200).json({
-                completeGoals : goalsData[0].completed,
-                incompleteGoals : goalsData[0].uncomplete
+                completeGoals : completeData[0].goalsData.length,
+                incompleteGoals : incompleteData[0].goalsData.length
             })
         } else {
             res.status(200).json({
@@ -41,7 +67,9 @@ exports.getUserGoals = async(req,res)=> {
                 _id: 0
             }}
         ]
+
         console.log(query);
+
         const goalsDataRes = await goalsRepo.aggregate(query);
 
         if(goalsDataRes.length > 0) {
@@ -222,7 +250,7 @@ exports.deleteGoals = async(req,res) => {
             },
             {
                 safe : true,
-                multi : true
+                multi : true 
             })
 
             if(deleteGoalResponse) {
