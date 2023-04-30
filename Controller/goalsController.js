@@ -189,6 +189,45 @@ exports.addGoals = async(req,res)=>{
     }
 }
 
+exports.updateGoals = async(req,res) => {
+    try {
+        const id = req.body.id;
+        const username = req.params.username;
+        const title = req.body.title;
+        const content = req.body.content;
+
+        const userInfo = await goalsRepo.find({username : username});
+
+        if(userInfo) {
+
+            // This will update the content and title for the particular goal
+            await goalsRepo.updateOne(
+                {username : username,'goalsData.goalsId' : id},
+                {
+                    $set : {
+                        'goalsData.$.title' : title,
+                        'goalsData.$.content' : content
+                    }
+                }
+            );
+
+            res.status(201).json({
+                data : "Goal Updated"   
+            })
+
+        } else {
+            res.status(201).json({
+                data : "No goals yet"
+            })
+        }
+
+    } catch (error) {
+        res.status(400).json({
+            message : error.message
+        })
+    }
+}
+
 exports.markGoalCompleted = async(req,res) => {
     try {
         const username = req.params.username;

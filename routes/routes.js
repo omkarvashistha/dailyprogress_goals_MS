@@ -13,6 +13,7 @@ router.get("/:username/getCompleteGoals",controller.getUserCompletedGoals);
 router.post("/:username/addGoal",controller.addGoals);
 router.post("/:username/markGoalComplete",controller.markGoalCompleted);
 
+router.put("/:username/updateGoal",controller.updateGoals);
 router.put("/:username/deleteGoal",controller.deleteGoals);
 
 router.all('*',controller.invalid);
