@@ -143,8 +143,26 @@ exports.addGoals = async(req,res)=>{
         }
 
         if(userGoals) {
+
+            const query = [ // this will get those goals which are not complete
+                {$match : {username : req.params.username}},
+                {$project : {
+                    goalsData : {
+                        $filter : {
+                            input : '$goalsData',
+                            as : 'goals',
+                            cond : {$eq : ['$$goals.complete',false]}
+                        }
+                    },
+                    $id : 0
+                }}
+            ]
+
+            const incompleteGoals = await goalsRepo.aggregate(query);
+
+            const countIncompleteGoals = incompleteGoals.length();
             
-            if(userGoals.uncomplete === 6) {
+            if(countIncompleteGoals === 6) {
                 res.status(201).json({
                     message : "Maximum Goals Limit reached"
                 })
