@@ -154,13 +154,15 @@ exports.addGoals = async(req,res)=>{
                             cond : {$eq : ['$$goals.complete',false]}
                         }
                     },
-                    $id : 0
+                    _id : 0
                 }}
             ]
 
             const incompleteGoals = await goalsRepo.aggregate(query);
 
-            const countIncompleteGoals = incompleteGoals.length();
+            console.log(incompleteGoals);
+
+            const countIncompleteGoals = incompleteGoals[0].goalsData.length || 70;
             
             if(countIncompleteGoals === 6) {
                 res.status(201).json({
